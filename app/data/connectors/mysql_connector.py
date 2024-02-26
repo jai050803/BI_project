@@ -1,58 +1,41 @@
-import mysql.connector
-from mysql.connector import Error
+from mysql.connector import Error, pooling
 
-class DatabaseConnection:
-    def __init__(self, host_name, user_name, user_password, db_name):
-        self.connection = None
-        self.host_name = "localhost"
-        self.user_name = "jai"
-        self.user_password = "jai@2301420045"
-        self.db_name = "ems"
+class DatabasePool:
+    # Class variable to hold the connection pool
+    pool = None
 
-    def connect(self):
-        """Establishes a connection to the database."""
+    @classmethod
+    def initialize_pool(cls, host_name, user_name, user_password, db_name, pool_size=5):
+        """Initializes the connection pool with the given parameters."""
         try:
-            self.connection = mysql.connector.connect(
-                host=self.host_name,
-                user=self.user_name,
-                passwd=self.user_password,
-                database=self.db_name
+            cls.pool = pooling.MySQLConnectionPool(
+                pool_name="mypool",
+                pool_size=pool_size,
+                pool_reset_session=True,
+                host="localhost",
+                user="jai",
+                password="jai@2301420045",
+                database="ems"
             )
-            print("Connection to MySQL DB successful")
+            print("Connection pool is created successfully")
         except Error as e:
-            print(f"The error '{e}' occurred")
+            print(f"Error while creating connection pool: {e}")
 
-    def disconnect(self):
-        """Closes the database connection."""
-        if self.connection.is_connected():
-            self.connection.close()
-            print("The connection is closed")
-
-    def execute_query(self, query):
-        """Executes a given SQL query on the database."""
-        cursor = self.connection.cursor()
+    @classmethod
+    def get_connection(cls):
+        """Retrieves a connection from the pool."""
         try:
-            cursor.execute(query)
-            self.connection.commit()
-            print("Query executed successfully")
+            connection = cls.pool.get_connection()
+            return connection
         except Error as e:
-            print(f"The error '{e}' occurred")
-
-    def execute_read_query(self, query):
-        """Executes a read query and returns the fetched data."""
-        cursor = self.connection.cursor()
-        result = None
-        try:
-            cursor.execute(query)
-            result = cursor.fetchall()
-            return result
-        except Error as e:
-            print(f"The error '{e}' occurred")
+            print(f"Error while getting connection: {e}")
 
 # Example usage
 if __name__ == "__main__":
-    db_conn = DatabaseConnection("host_name", "user_name", "user_password", "db_name")
-    db_conn.connect()
-    # Example query execution
-    # db_conn.execute_query("CREATE TABLE Example (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255))")
-    db_conn.disconnect()
+    DatabasePool.initialize_pool("host_name", "user_name", "user_password", "db_name")
+    # Getting a connection from the pool
+    connection = DatabasePool.get_connection()
+    if connection:
+        print("Successfully retrieved a connection from the pool")
+        # Don't forget to close the connection when done
+        connection.close()
