@@ -21,8 +21,7 @@ class EmployeeManagementSystem:
         self.root.state('zoomed')
         self.theme = "light"  # Default theme
         self.status_frame = None  # Initialize status_frame attribute
-
-
+      
         # Add file_path attribute
         self.file_path = None
         self.current_data = None
