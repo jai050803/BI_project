@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, filedialog, messagebox, simpledialog
 from tkinter.simpledialog import askstring
 from PIL import Image, ImageTk
 import pandas as pd
@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import textwrap
 import numpy as np
+import pymysql
 from tkinter import Scrollbar
 
 class EmployeeManagementSystem:
@@ -65,7 +66,7 @@ class EmployeeManagementSystem:
         file_heading.pack(pady=10)
 
         # Buttons for Different File Types
-        file_types = ["CSV", "Text", "Excel", "Word"]
+        file_types = ["CSV", "Text", "Excel", "Word","MySQL Server"]
         for file_type in file_types:
             button = tk.Button(self.menu_frame, text=f"Open {file_type}", command=lambda ft=file_type: self.open_file(ft),
                                bg="#273746", fg="#ecf0f1", width=15, bd=1, relief=tk.RAISED)
@@ -1030,14 +1031,17 @@ class EmployeeManagementSystem:
         messagebox.showinfo("Statistic of Data", "Calculating Statistics")
 
     def open_file(self, file_type):
-        file_extension = file_type.lower()
-        file_path = filedialog.askopenfilename(title=f"Select {file_type} File", filetypes=[(f"{file_type} files", f"*.{file_extension}")])
-        if file_path:
-            print(f"Opening {file_type} file: {file_path}")
-            try:
-                self.display_data(file_path, file_type)
-            except Exception as e:
-                messagebox.showerror("Error", f"Error reading {file_type} file: {e}")
+        if file_type != "MySQL Server":
+            file_extension = file_type.lower()
+            file_path = filedialog.askopenfilename(title=f"Select {file_type} File", filetypes=[(f"{file_type} files", f"*.{file_extension}")])
+            if file_path:
+                print(f"Opening {file_type} file: {file_path}")
+                try:
+                    self.display_data(file_path, file_type)
+                except Exception as e:
+                    messagebox.showerror("Error", f"Error reading {file_type} file: {e}")
+        else:
+            messagebox.showerror("error","error connecting to mysql server")
 
 
     def display_data(self, file_path, file_type):

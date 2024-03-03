@@ -1,2 +1,11 @@
 Flask
 bcrypt
+pandas
+numpy
+pillow
+seaborn
+scipy
+openpyxl
+tkinter
+matplotlib
+python-docx
