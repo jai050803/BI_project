@@ -1041,7 +1041,51 @@ class EmployeeManagementSystem:
                 except Exception as e:
                     messagebox.showerror("Error", f"Error reading {file_type} file: {e}")
         else:
-            messagebox.showerror("error","error connecting to mysql server")
+            try:
+                self.mysql_connection_dialog()
+            except:
+                messagebox.showerror("Error", "Error connecting to MySQL Server.")
+    
+    def mysql_connection_dialog(self):
+        # Dialog for MySQL connection details
+        host = simpledialog.askstring("MySQL Connection", "Enter Host:")
+        user = simpledialog.askstring("MySQL Connection", "Enter User:")
+        password = simpledialog.askstring("MySQL Connection", "Enter Password:", show="*")
+        database = simpledialog.askstring("MySQL Connection", "Enter Database:")
+
+        if host and user and password and database:
+            # Attempt to establish a MySQL connection
+            try:
+                self.mysql_conn = pymysql.connect(host=host, user=user, password=password, database=database)
+                self.select_mysql_table()
+            except pymysql.MySQLError as e:
+                messagebox.showerror("MySQL Connection Error", f"Error connecting to MySQL Server: {e}")
+        else:
+            messagebox.showwarning("MySQL Connection", "Connection details are incomplete.")
+
+    def select_mysql_table(self):
+        cursor = self.mysql_conn.cursor()
+        cursor.execute("SHOW TABLES;")
+        tables = [table[0] for table in cursor.fetchall()]
+        
+        # Ask user to select a table
+        table = simpledialog.askstring("Select Table", f"Enter table name from list: {', '.join(tables)}")
+        if table in tables:
+            # Fetching the data from the selected table
+            query = f"SELECT * FROM {table}"
+            cursor.execute(query)
+            data = cursor.fetchall()
+            
+            # Fetching column names
+            columns = [desc[0] for desc in cursor.description]
+            
+            # Converting the data into a Pandas DataFrame
+            df = pd.DataFrame(data, columns=columns)
+            
+            # Displaying the data using the existing display_in_treeview method
+            self.display_in_treeview(df)
+        else:
+            messagebox.showerror("Table Selection", "Invalid table name or table does not exist.")
 
 
     def display_data(self, file_path, file_type):
